@@ -19,11 +19,18 @@ import entities.Camera;
 import entities.Entity;
 import entities.Light;
 import entities.Player;
+import fontMeshCreator.FontType;
+import fontMeshCreator.GUIText;
+import fontRendering.TextMaster;
 import guis.GuiRenderer;
 import guis.GuiTexture;
 import models.RawModel;
 import models.TexturedModel;
 import normalMappingObjConverter.NormalMappedObjLoader;
+import particles.Particle;
+import particles.ParticleMaster;
+import particles.ParticleSystem;
+import particles.ParticleTexture;
 import renderEngine.DisplayManager;
 import renderEngine.Loader;
 import renderEngine.MasterRenderer;
@@ -32,12 +39,10 @@ import terrains.Terrain;
 import textures.ModelTexture;
 import textures.TerrainTexture;
 import textures.TerrainTexturePack;
-//import toolbox.MousePicker;
 import water.WaterFrameBuffers;
 import water.WaterRenderer;
 import water.WaterShader;
 import water.WaterTile;
-import webIntegration.loginForm;
 import webIntegration.variableSender;
 
 public class MainGameLoop {
@@ -46,12 +51,17 @@ public class MainGameLoop {
 
 		boolean wasPressed = false;
 
-		String uid = loginForm.getUsername();
-
 		System.setProperty("org.lwjgl.librarypath", new File("lib/natives").getAbsolutePath());
 
 		DisplayManager.createDisplay();
 		Loader loader = new Loader();
+		TextMaster.init(loader);
+		MasterRenderer renderer = new MasterRenderer(loader);
+		ParticleMaster.init(loader, renderer.getProjectionMatrix());
+		
+		FontType font = new FontType(loader.loadFontTexture("grafika"), new File("res/grafika.fnt"));
+		GUIText text = new GUIText("alpha-V1.9.3", 0.8f, font, new Vector2f(-0.44f, 0.045f), 1f, true);
+		text.setColour(0, 0, 0);
 
 		TerrainTexture backgroundTexture = new TerrainTexture(loader.loadTexture("grassy"));
 		TerrainTexture rTexture = new TerrainTexture(loader.loadTexture("dirt"));
@@ -73,7 +83,6 @@ public class MainGameLoop {
 		TexturedModel pine = new TexturedModel(OBJLoader.loadObjModel("pine", loader), new ModelTexture(loader.loadTexture("pine")));
 		TexturedModel lamp = new TexturedModel(OBJLoader.loadObjModel("lamp", loader), new ModelTexture(loader.loadTexture("lamp")));
 		TexturedModel fern = new TexturedModel(OBJLoader.loadObjModel("fern", loader), fernTextureAtlas);
-		//TexturedModel plant = new TexturedModel(OBJLoader.loadObjModel("plant", loader), plantTextureAtlas);
 		TexturedModel boulder = new TexturedModel(NormalMappedObjLoader.loadOBJ("boulder", loader), new ModelTexture(loader.loadTexture("boulder")));
 		boulder.getTexture().setShineDamper(5);
 		boulder.getTexture().setReflectivity(0.5f);
@@ -122,9 +131,6 @@ public class MainGameLoop {
 			}
 		}
 
-
-		MasterRenderer renderer = new MasterRenderer(loader);
-
 		Camera camera = new Camera(player);  
 
 		List<Light> lights = new ArrayList<Light>();
@@ -167,6 +173,10 @@ public class MainGameLoop {
 		List<WaterTile> waters = new ArrayList<WaterTile>();
 		WaterTile water = new WaterTile(900, -900, -20);
 		waters.add(water);
+		
+		ParticleTexture particleTexture = new ParticleTexture(loader.loadTexture("smokeParticle"), 4);
+		
+		ParticleSystem system = new ParticleSystem(particleTexture, 40, 10, 0.1f, 1, 1.6f);
 
 		while(!Display.isCloseRequested() && !Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)){
 			if (!(Keyboard.isKeyDown(Keyboard.KEY_A) || Keyboard.isKeyDown(Keyboard.KEY_S)  || Keyboard.isKeyDown(Keyboard.KEY_W) || Keyboard.isKeyDown(Keyboard.KEY_D)) && wasPressed){
@@ -195,32 +205,40 @@ public class MainGameLoop {
 			player.move(terrain);
 			camera.move();
 			
+			system.generateParticles(new Vector3f(984,16,-1350));
+			
+			ParticleMaster.update(camera);
+			
 			GL11.glEnable(GL30.GL_CLIP_DISTANCE0);
 			
 			fbos.bindReflectionFrameBuffer();
 			float distance = 2 * (camera.getPosition().y - water.getHeight());
 			camera.getPosition().y -= distance;
 			camera.invertPitch();
-			//renderer.processEntity(player);
-			renderer.renderScene(entities, normalMapEntities, terrains, lights, camera, new Vector4f(0, 1, 0, -water.getHeight()+1f));
+			renderer.processEntity(player);
+			renderer.renderScene(entities, normalMapEntities, terrains, lights, camera, new Vector4f(0, 1, 0, -water.getHeight()+4f));
 			camera.getPosition().y += distance;
 			camera.invertPitch();
 			
 			fbos.bindRefractionFrameBuffer();
 			renderer.processEntity(player);
-			renderer.renderScene(entities, normalMapEntities, terrains, lights, camera, new Vector4f(0, -1, 0, water.getHeight()+1f));
+			renderer.renderScene(entities, normalMapEntities, terrains, lights, camera, new Vector4f(0, -1, 0, water.getHeight()+4f));
 			GL11.glDisable(GL30.GL_CLIP_DISTANCE0);
 			fbos.unbindCurrentFrameBuffer();
 			
 			renderer.processEntity(player);
 			renderer.renderScene(entities, normalMapEntities, terrains, lights, camera, new Vector4f(0, 0, 0, 0));
 			waterRenderer.render(waters, camera, sun);
+			ParticleMaster.renderParticles(camera);
 			guiRenderer.render(guis);
+			TextMaster.render();
 			guis.remove(underwater);
 			guis.remove(logo);
 			
 			DisplayManager.updateDisplay();
 		}
+		ParticleMaster.cleanUp();
+		TextMaster.cleanUp();
 		fbos.cleanUp();
 		backgroundambient.delete();    
 		AudioMaster.cleanUp();
@@ -229,8 +247,8 @@ public class MainGameLoop {
 		loader.cleanUp();
 		DisplayManager.closeDisplay();
 		Float dist = player.getDistanceTraveled() * 0.12f;
+		String uid = webIntegration.FileReader.fileReader();
 		variableSender.sendVariable(uid, Float.toString(dist));
-		System.exit(0);
 	}
 
 }
