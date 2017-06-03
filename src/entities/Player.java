@@ -9,11 +9,12 @@ import terrains.Terrain;
 
 public class Player extends Entity {
 	
-	private static final float RUN_SPEED = 20;
+	private static final float RUN_SPEED = 20;   //NORMAL = 20
 	private static final float TURN_SPEED 	= 160;
-	private static final float GRAVITY = -100;
+	public static final float GRAVITY = -120;
 	private static final float JUMP_POWER = 30;
 	
+	private boolean respawning = false;
 	private float currentSpeed = 0;
 	private float currentTurnSpeed = 0;
 	private float upwardsSpeed = 0;
@@ -41,7 +42,7 @@ public class Player extends Entity {
 		upwardsSpeed += GRAVITY * DisplayManager.getFrameTimeSeconds();
 		super.increasePosition(0, upwardsSpeed * DisplayManager.getFrameTimeSeconds(), 0);
 		float terrainHeight = terrain.getHeightOfTerrain(super.getPosition().x, super.getPosition().z);
-		if (super.getPosition().y < terrainHeight) {
+		if (super.getPosition().y < terrainHeight && terrainHeight != 0 ) {
 			upwardsSpeed = 0;
 			isInAir = false;
 			super.getPosition().y = terrainHeight;
@@ -57,26 +58,28 @@ public class Player extends Entity {
 	}
 
 	private void checkInputs(){
-		if(Keyboard.isKeyDown(Keyboard.KEY_W)) {
-			this.currentSpeed = RUN_SPEED;
-		}
-		else if(Keyboard.isKeyDown(Keyboard.KEY_S)) {
-			this.currentSpeed = -RUN_SPEED;
-		} else {
-			this.currentSpeed = 0;
-		}
+		if (!respawning){
+			if(Keyboard.isKeyDown(Keyboard.KEY_W)) {
+				this.currentSpeed = RUN_SPEED;
+			}
+			else if(Keyboard.isKeyDown(Keyboard.KEY_S)) {
+				this.currentSpeed = -RUN_SPEED;
+			} else {
+				this.currentSpeed = 0;
+			}
 
-		if(Keyboard.isKeyDown(Keyboard.KEY_D)) {
-			this.currentTurnSpeed = -TURN_SPEED;
-		}
-		else if(Keyboard.isKeyDown(Keyboard.KEY_A)) {
-			this.currentTurnSpeed = TURN_SPEED;
-		} else {
-			this.currentTurnSpeed = 0;
-		}		
-		
-		if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
-			jump();
+			if(Keyboard.isKeyDown(Keyboard.KEY_D)) {
+				this.currentTurnSpeed = -TURN_SPEED;
+			}
+			else if(Keyboard.isKeyDown(Keyboard.KEY_A)) {
+				this.currentTurnSpeed = TURN_SPEED;
+			} else {
+				this.currentTurnSpeed = 0;
+			}		
+
+			if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
+				jump();
+			}
 		}
 	}
 
@@ -87,6 +90,39 @@ public class Player extends Entity {
 	public void setDistanceTraveled(float distanceTraveled) {
 		this.distanceTraveled = distanceTraveled;
 	}
+
+	public boolean isRespawning() {
+		return respawning;
+	}
+
+	public void setRespawning(boolean respawning) {
+		this.respawning = respawning;
+	}
+
+	public float getCurrentSpeed() {
+		return currentSpeed;
+	}
+
+	public void setCurrentSpeed(float currentSpeed) {
+		this.currentSpeed = currentSpeed;
+	}
+
+	public float getCurrentTurnSpeed() {
+		return currentTurnSpeed;
+	}
+
+	public void setCurrentTurnSpeed(float currentTurnSpeed) {
+		this.currentTurnSpeed = currentTurnSpeed;
+	}
+
+	public float getUpwardsSpeed() {
+		return upwardsSpeed;
+	}
+
+	public void setUpwardsSpeed(float upwardsSpeed) {
+		this.upwardsSpeed = upwardsSpeed;
+	}
+	
 	
 	
 }

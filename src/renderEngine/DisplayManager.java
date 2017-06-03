@@ -10,6 +10,7 @@ import org.lwjgl.opengl.ContextAttribs;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.PixelFormat;
 
 public class DisplayManager {
@@ -18,7 +19,7 @@ public class DisplayManager {
 	
 	private static final int WIDTH = gd.getDisplayMode().getWidth();;
 	private static final int HEIGHT = gd.getDisplayMode().getHeight();;
-	private static final int FPS_CAP = 40;
+	private static final int FPS_CAP = 20;
 	
 	private static long lastFrameTime;
 	private static float delta;
@@ -30,7 +31,7 @@ public class DisplayManager {
 		
 		try {
 			Display.setDisplayMode(new DisplayMode(WIDTH,HEIGHT));
-			Display.create(new PixelFormat(), attribs);
+			Display.create(new PixelFormat().withDepthBits(24), attribs);
 			Display.setTitle("Walk simulator");
 			
 			ByteBuffer[] list = new ByteBuffer[2];

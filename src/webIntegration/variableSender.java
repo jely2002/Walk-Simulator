@@ -10,7 +10,7 @@ public class variableSender {
 	
 	public static void sendVariable(String var1, String var2) {
     	try {
-        URL url = new URL("http://217.122.119.120/walksimulator/signup.php?uid="+var1+"&dist="+var2);
+        URL url = new URL("http://walksimulator.jelleglebbeek.com/signup.php?uid="+var1+"&dist="+var2);
         URLConnection yc = url.openConnection();
         BufferedReader in = new BufferedReader(
                                 new InputStreamReader(

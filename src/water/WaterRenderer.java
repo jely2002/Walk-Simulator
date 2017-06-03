@@ -21,7 +21,7 @@ public class WaterRenderer {
 	
 	private static final String DUDV_MAP= "waterDUDV";
 	private static final String NORMAL_MAP= "waterNormalMap";
-	private static final float WAVE_SPEED = 0.015f;
+	private static final float WAVE_SPEED = 0.025f;
  
     private RawModel quad;
     private WaterShader shader;
