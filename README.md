@@ -1,4 +1,4 @@
 # Walk-Simulator
-The open source code of Walk Simulator
+The open source code of Walk Simulator.
+This project has been abandoned.
 
-Download now at walksimulator.tk!
